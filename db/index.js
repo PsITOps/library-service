@@ -4,7 +4,11 @@ var config = require('config');
 var db = config.get('db');
 
 var connect = function () {
-    mongoose.connect(db);
+    mongoose.connect(db).then(() => {
+        console.log('Successfully connected to the mongodb server');
+    }).catch(err => {
+        console.log(err);
+    })
 }
 
 module.exports = {
