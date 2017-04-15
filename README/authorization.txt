@@ -1,0 +1,1 @@
+Service uses https://github.com/auth0/node-jsonwebtoken to generate and validate tokens
