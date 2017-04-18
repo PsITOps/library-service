@@ -1,13 +1,27 @@
 const LIBRARIAN_CODE = 'i love books';
 
-function isLibrarianCodeCorrect(code) {
-    return code == LIBRARIAN_CODE;
+class LibrarianValidator {
+
+    constructor() {
+
+    }
+
+    isLibrarianCodeCorrect(code) {
+        return code == LIBRARIAN_CODE;
+    }
+
+    isLibrarian(code) {
+        return this.isLibrarianCodeCorrect(code);
+    }
+
+    isLibrarianCodeSupplied(code) {
+        return code != undefined;
+    }
+
+    isWrongLibrarianCodeSupplied(code) {
+        return this.isLibrarianCodeSupplied(code) &&
+            !this.isLibrarianCodeCorrect(code);
+    }
 }
 
-function isLibrarian(code) {
-    return isLibrarianCodeCorrect(code);
-}
-
-module.exports = {
-    isLibrarian,
-}
+module.exports = LibrarianValidator;
