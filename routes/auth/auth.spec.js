@@ -1,7 +1,9 @@
 var chai = require('chai'),
     chaiHttp = require('chai-http'),
     service = require('../../app'),
-    User = require('../user/user-model')
+    User = require('../user/user-model'),
+    jwt = require('jsonwebtoken'),
+    config = require('config');
 auth = require('./auth');
 
 chai.use(chaiHttp);
@@ -130,7 +132,16 @@ describe('/login', () => {
             })
             .end((err, res) => {
                 expect(res).to.have.property('token');
-                done()
+                expect(res).to.have.property('isLibrarian', false);
+                expect(res).to.have.property('valid', true);
+
+
+                jwt.verify(res.body.token, config.get('secredKey'), (err, payload) => {
+                    expect(err).to.be('null');
+                    done()
+                })
+
+
             })
     })
 })

@@ -46,8 +46,15 @@ authRouter.post('/signin', (req, res) => {
                 res.json(err);
             })
         }));
+})
 
+authRouter.post('/login', (req, res) => {
+    User.findOne({
+        login: req.body.login,
+        password: req.body.password
+    }).then(user => {
 
+    })
 })
 
 module.exports = authRouter;
