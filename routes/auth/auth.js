@@ -1,8 +1,11 @@
 var express = require('express'),
     User = require('../user/user-model'),
     LibrarianValidator = require('./librarian-validator'),
-    UserLogin = require('../user/user.logic')
+    UserLogin = require('../user/user.logic'),
+    TokenManager = require('./web-token-manager');
 
+
+var tokenManager = new TokenManager();
 var librarianValidator = new LibrarianValidator();
 var authRouter = express.Router();
 var userLogic = new UserLogin();
@@ -18,7 +21,7 @@ authRouter.post('/signin', (req, res) => {
                 return;
             }
 
-            let isLibrarian = librarianValidator.isLibrarian(req.body.librarianCode);
+            let isLibrarian = librarianValidator.isLibrarianCode(req.body.librarianCode);
 
             let newUser = new User({
                 name: req.body.name,
@@ -49,12 +52,39 @@ authRouter.post('/signin', (req, res) => {
 })
 
 authRouter.post('/login', (req, res) => {
+
+    let data;
+
     User.findOne({
         login: req.body.login,
         password: req.body.password
     }).then(user => {
+        data = user;
 
+        if (!user) {
+            res.status(401).json({
+                valid: false,
+                message: 'Błędne dane logowania'
+            });
+            return
+        }
+
+        return tokenManager.generateToken(tokenManager.getPayload(user));
+    }).then(token => {
+        if (!token) return;
+        var isLibrarian = librarianValidator.isLibrarianUser(data);
+        res.json({
+            token: token,
+            valid: true,
+            isLibrarian: isLibrarian
+        })
+    }).catch(err => {
+        res.json({
+            valid: false,
+            err: err
+        })
     })
+
 })
 
 module.exports = authRouter;

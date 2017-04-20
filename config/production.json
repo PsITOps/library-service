@@ -1,3 +1,4 @@
 {
-    "db": "mongodb://localhost/library"
+    "db": "mongodb://localhost/library",
+    "secredKey": "motostyle"
 }

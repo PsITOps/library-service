@@ -108,6 +108,12 @@ describe('/login', () => {
                     lastname: 'Kowalski',
                     login: 'jk',
                     password: 'jk'
+                }, {
+                    name: 'Dawid',
+                    lastname: 'Dyrcz',
+                    login: 'dd',
+                    password: 'dd',
+                    isLibrarian: true
                 })
             })
             .then((user) => {
@@ -123,25 +129,50 @@ describe('/login', () => {
     })
 
 
-    it('should login to the service', (done) => {
+    it('should login to the service as a reader', (done) => {
         chai.request(service)
-            .post('/signin')
+            .post('/login')
             .send({
                 login: 'jk',
                 password: 'jk'
             })
             .end((err, res) => {
-                expect(res).to.have.property('token');
-                expect(res).to.have.property('isLibrarian', false);
-                expect(res).to.have.property('valid', true);
+                expect(res.body).to.have.property('token');
+                expect(res.body).to.have.property('valid', true);
+                expect(res.body).to.have.property('isLibrarian', false)
+                expect(res).to.has.status(200);
+                done();
+            })
+    })
 
+    it('should login to the service as a librarian', (done) => {
+        chai.request(service)
+            .post('/login')
+            .send({
+                login: 'dd',
+                password: 'dd'
+            })
+            .end((err, res) => {
+                expect(res.body).to.have.property('token');
+                expect(res.body).to.have.property('valid', true);
+                expect(res.body).to.have.property('isLibrarian', true)
+                expect(res).to.has.status(200);
+                done();
+            })
+    })
 
-                jwt.verify(res.body.token, config.get('secredKey'), (err, payload) => {
-                    expect(err).to.be('null');
-                    done()
-                })
-
-
+    it('should vaild to login with invalid credentials', (done) => {
+        chai.request(service)
+            .post('/login')
+            .send({
+                login: 'mm',
+                password: 'mm'
+            })
+            .end((err, res) => {
+                expect(res.body).to.have.property('valid', false);
+                expect(res.body).to.have.property('message')
+                expect(res).to.has.status(401);
+                done();
             })
     })
 })

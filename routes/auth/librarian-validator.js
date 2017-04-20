@@ -10,7 +10,7 @@ class LibrarianValidator {
         return code == LIBRARIAN_CODE;
     }
 
-    isLibrarian(code) {
+    isLibrarianCode(code) {
         return this.isLibrarianCodeCorrect(code);
     }
 
@@ -21,6 +21,12 @@ class LibrarianValidator {
     isWrongLibrarianCodeSupplied(code) {
         return this.isLibrarianCodeSupplied(code) &&
             !this.isLibrarianCodeCorrect(code);
+    }
+
+    isLibrarianUser(user) {
+        return user != undefined &&
+            user.isLibrarian != undefined &&
+            user.isLibrarian;
     }
 }
 
