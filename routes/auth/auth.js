@@ -1,7 +1,7 @@
 var express = require('express'),
-    User = require('../user/user-model'),
+    User = require('../../models/user'),
     LibrarianValidator = require('./librarian-validator'),
-    UserLogin = require('../user/user.logic'),
+    UserLogin = require('../user/user-logic'),
     TokenManager = require('./web-token-manager');
 
 
@@ -11,9 +11,9 @@ var authRouter = express.Router();
 var userLogic = new UserLogin();
 
 authRouter.post('/signin', (req, res) => {
-    // change to async/await
-    if (userLogic.isAnyUserWithLogin(req.body.login, (err, result) => {
-            if (result) {
+    userLogic.isAnyUserWithLogin(req.body.login)
+        .then(loginExists => {
+            if (loginExists) {
                 res.status(409).json({
                     valid: false,
                     message: 'Podany login już istnieje'
@@ -48,43 +48,52 @@ authRouter.post('/signin', (req, res) => {
             }).catch(err => {
                 res.json(err);
             })
-        }));
+        }).catch(err => {
+            res.json({
+                valid: false,
+                err: err
+            })
+        })
 })
 
-authRouter.post('/login', (req, res) => {
-
-    let data;
-
+authRouter.post('/login', (req, res, next) => {
     User.findOne({
         login: req.body.login,
         password: req.body.password
     }).then(user => {
-        data = user;
-
         if (!user) {
             res.status(401).json({
                 valid: false,
                 message: 'Błędne dane logowania'
             });
-            return
+        } else {
+            req.user = user;
+            next();
         }
-
-        return tokenManager.generateToken(tokenManager.getPayload(user));
-    }).then(token => {
-        if (!token) return;
-        var isLibrarian = librarianValidator.isLibrarianUser(data);
-        res.json({
-            token: token,
-            valid: true,
-            isLibrarian: isLibrarian
-        })
     }).catch(err => {
         res.json({
             valid: false,
             err: err
         })
     })
+})
 
+authRouter.post('/login', (req, res) => {
+    return tokenManager.generateToken(tokenManager.getPayload(req.user))
+        .then(token => {
+            if (!token) return;
+            var isLibrarian = librarianValidator.isLibrarianUser(req.user);
+            res.json({
+                token: token,
+                valid: true,
+                isLibrarian: isLibrarian
+            })
+        }).catch(err => {
+            res.json({
+                valid: false,
+                err: err
+            })
+        })
 })
 
 module.exports = authRouter;

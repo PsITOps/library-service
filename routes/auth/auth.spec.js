@@ -1,7 +1,7 @@
 var chai = require('chai'),
     chaiHttp = require('chai-http'),
     service = require('../../app'),
-    User = require('../user/user-model'),
+    User = require('../../models/user'),
     jwt = require('jsonwebtoken'),
     config = require('config');
 auth = require('./auth');
