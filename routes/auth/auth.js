@@ -1,87 +1,39 @@
 var express = require('express'),
     User = require('../../models/user'),
     LibrarianValidator = require('./librarian-validator'),
-    UserLogin = require('../user/user-logic'),
-    TokenManager = require('./web-token-manager');
-
+    TokenManager = require('./web-token-manager'),
+    logic = require('./auth-logic');
 
 var tokenManager = new TokenManager();
 var librarianValidator = new LibrarianValidator();
-var authRouter = express.Router();
-var userLogic = new UserLogin();
+var router = express.Router();
 
-authRouter.post('/signin', (req, res) => {
-    userLogic.isAnyUserWithLogin(req.body.login)
-        .then(loginExists => {
-            if (loginExists) {
-                res.status(409).json({
-                    valid: false,
-                    message: 'Podany login już istnieje'
-                })
-                return;
-            }
+let {
+    validateLogin,
+    validateLibrarianCode,
+    validateCredentials
+} = logic;
 
-            let isLibrarian = librarianValidator.isLibrarianCode(req.body.librarianCode);
+router.post('/signin', validateLogin, validateLibrarianCode, (req, res) => {
 
-            let newUser = new User({
-                name: req.body.name,
-                lastname: req.body.lastname,
-                login: req.body.login,
-                password: req.body.password,
-                isLibrarian: isLibrarian
-            });
+    let isLibrarian = librarianValidator.isLibrarianCode(req.body.librarianCode);
 
-            if (librarianValidator.isWrongLibrarianCodeSupplied(req.body.librarianCode)) {
-                res.status(400).json({
-                    valid: false,
-                    message: 'Błędny kod potwierdzający'
-                }).end();
+    let newUser = new User(req.body);
+    newUser.isLibrarian = isLibrarian;
 
-                return
-            }
-
-            newUser.save().then(user => {
-                res.json({
-                    valid: true,
-                    isLibrarian: isLibrarian
-                });
-            }).catch(err => {
-                res.json(err);
-            })
-        }).catch(err => {
-            res.json({
-                valid: false,
-                err: err
-            })
-        })
-})
-
-authRouter.post('/login', (req, res, next) => {
-    User.findOne({
-        login: req.body.login,
-        password: req.body.password
-    }).then(user => {
-        if (!user) {
-            res.status(401).json({
-                valid: false,
-                message: 'Błędne dane logowania'
-            });
-        } else {
-            req.user = user;
-            next();
-        }
-    }).catch(err => {
+    newUser.save().then(user => {
         res.json({
-            valid: false,
-            err: err
-        })
+            valid: true,
+            isLibrarian: isLibrarian
+        });
+    }).catch(err => {
+        res.json(err);
     })
 })
 
-authRouter.post('/login', (req, res) => {
+router.post('/login', validateCredentials, (req, res) => {
     return tokenManager.generateToken(tokenManager.getPayload(req.user))
         .then(token => {
-            if (!token) return;
             var isLibrarian = librarianValidator.isLibrarianUser(req.user);
             res.json({
                 token: token,
@@ -96,4 +48,19 @@ authRouter.post('/login', (req, res) => {
         })
 })
 
-module.exports = authRouter;
+router.use('/api', (req, res, next) => {
+    var token = req.body.token || req.query.token || req.headers['x-access-token'];
+
+    tokenManager.validateToken(token)
+        .then(payload => {
+            req.user = payload;
+            next();
+        }).catch(err => {
+            res.status(401).json({
+                valid: false,
+                message: 'Wystąpił problem z uwierzytelnieniem'
+            })
+        })
+})
+
+module.exports = router;

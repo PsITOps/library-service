@@ -3,8 +3,8 @@ var chai = require('chai'),
     service = require('../../app'),
     User = require('../../models/user'),
     jwt = require('jsonwebtoken'),
-    config = require('config');
-auth = require('./auth');
+    config = require('config'),
+    auth = require('./auth');
 
 chai.use(chaiHttp);
 var expect = chai.expect;
@@ -97,7 +97,6 @@ describe('/signin', () => {
             })
     });
 })
-
 
 describe('/login', () => {
     beforeEach((done) => {

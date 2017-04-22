@@ -26,6 +26,19 @@ class TokenManager {
             })
         })
     }
+
+    validateToken(token) {
+        return new Promise((resolve, reject) => {
+            if (!token) {
+                reject(new Error('Token must be supplied'));
+            }
+
+            jwt.verify(token, this.secredKey, (err, payload) => {
+                if (err) reject(err);
+                resolve(payload);
+            })
+        })
+    }
 }
 
 module.exports = TokenManager;
