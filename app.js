@@ -3,14 +3,15 @@ var path = require('path');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var morganResolver = require('./lib/util/morgan-resolver');
 
 
-var db = require('./db');
+var db = require('./lib/db');
 db.connect();
 
 var app = express();
 
-app.use(logger('dev'));
+app.use(morganResolver());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
   extended: false
@@ -18,7 +19,7 @@ app.use(bodyParser.urlencoded({
 app.use(cookieParser());
 
 // setups routes
-require('./routes/setup')(app);
+require('./lib/routes/setup')(app);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
