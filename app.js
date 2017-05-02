@@ -1,15 +1,15 @@
-var express = require('express');
-var path = require('path');
-var logger = require('morgan');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
-var morganResolver = require('./lib/util/morgan-resolver');
+var express = require('express'),
+  path = require('path'),
+  logger = require('morgan'),
+  cookieParser = require('cookie-parser'),
+  bodyParser = require('body-parser'),
+  morganResolver = require('./lib/util/morgan-resolver'),
+  db = require('./lib/db'),
+  app = express();
 
+require('./config/setup')(__dirname);
 
-var db = require('./lib/db');
 db.connect();
-
-var app = express();
 
 app.use(morganResolver());
 app.use(bodyParser.json());
