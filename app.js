@@ -1,3 +1,6 @@
+// configure config files path
+require('./config/setup')(__dirname);
+
 var express = require('express'),
   path = require('path'),
   logger = require('morgan'),
@@ -7,9 +10,8 @@ var express = require('express'),
   db = require('./lib/db'),
   app = express();
 
-require('./config/setup')(__dirname);
-
 db.connect();
+
 
 app.use(morganResolver());
 app.use(bodyParser.json());
